@@ -1,0 +1,24 @@
+{
+  "name": "paa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KronTech-KT/paa.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KronTech-KT/paa/issues"
+  },
+  "homepage": "https://github.com/KronTech-KT/paa#readme",
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

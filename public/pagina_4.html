@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algoritmo de Floyd-Warshall - PAA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    header {
+      background-color: #3498db;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2.5em;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .matrix-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+      transition: background-color 0.5s ease;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+      background-color: #3498db;
+      /* Cor atualizada do botão */
+    }
+
+    button:hover {
+      background-color: #2980b9;
+      /* Cor mais escura para o efeito hover */
+    }
+
+    #prevStep {
+      background-color: #3498db;
+    }
+
+    #prevStep:hover {
+      background-color: #2980b9;
+    }
+
+    #nextStep {
+      background-color: #2ecc71;
+    }
+
+    #nextStep:hover {
+      background-color: #27ae60;
+    }
+
+    footer {
+      background-color: #34495e;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+      margin-top: auto;
+    }
+
+    .tooltip {
+      position: absolute;
+      background-color: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 95%;
+      z-index: 1000;
+      font-size: 18px;
+      line-height: 1.6;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .tooltip h3 {
+      margin: 0 0 20px 0;
+      color: #3498db;
+      font-size: 24px;
+    }
+
+    .tooltip p {
+      margin: 0;
+      color: #333;
+      font-size: 18px;
+    }
+
+    /* Adicione estes estilos para a animação de transição */
+    body {
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+
+    body.fade-in {
+      opacity: 1;
+    }
+
+    .fade-out {
+      opacity: 0;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .path-container {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #e6f7ff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .path-container h2 {
+      color: #3498db;
+      margin-bottom: 10px;
+    }
+
+    .path {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .path-node {
+      background-color: #3498db;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 20px;
+      margin: 5px;
+      font-weight: bold;
+    }
+
+    .path-arrow {
+      font-size: 24px;
+      color: #3498db;
+      margin: 0 5px;
+    }
+
+    .explanation {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .explanation h3 {
+      color: #3498db;
+      margin-bottom: 10px;
+    }
+
+    .explanation p {
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Algoritmo de Floyd-Warshall</h1>
+    <p>Visualização do processo de preenchimento da matriz</p>
+  </header>
+
+  <div class="container">
+    <div class="matrix-container">
+      <h3>Tabela de Distâncias entre Cidades</h3>
+      <p>Esta tabela mostra as distâncias entre as cidades. Cada célula representa a menor distância conhecida entre
+        duas cidades.</p>
+      <table id="matrix"></table>
+    </div>
+
+    <button id="startButton">Iniciar a Busca pelos Menores Caminhos</button>
+
+    <div class="step-explanation" style="display: none;">
+      <h3>O que está acontecendo agora?</h3>
+      <p id="currentStep"></p>
+    </div>
+
+    <div class="path-container" style="display: none;">
+      <h2>Resultado: Menor Caminho Encontrado</h2>
+      <div id="shortestPath" class="path"></div>
+    </div>
+
+    <div class="shortest-path-info" style="display: none;">
+      <h3>O que descobrimos?</h3>
+      <p id="shortestPathInfo"></p>
+    </div>
+
+    <button id="backToPage3" class="transition-btn" style="margin-top: 20px;">Voltar</button>
+  </div>
+
+  <footer>
+    <p>Desenvolvido por: Isis Ferreira Araujo, Kledyson Henrique Goes Dos Santos e Paulo Vitor Costa Melo</p>
+    <p>Disciplina: PAA</p>
+  </footer>
+
+  <script>
+    const vertices = ['SP', 'RJ', 'MG', 'BA', 'PR'];
+    let edges = [
+      { from: 'SP', to: 'RJ', weight: 400 },
+      { from: 'SP', to: 'MG', weight: 500 },
+      { from: 'SP', to: 'PR', weight: 300 },
+      { from: 'RJ', to: 'MG', weight: 450 },
+      { from: 'MG', to: 'BA', weight: 1000 },
+      { from: 'BA', to: 'SP', weight: 1200 }
+    ];
+
+    const matrixTable = document.getElementById('matrix');
+    const startButton = document.getElementById('startButton');
+
+    let matrix = [];
+    let pathMatrix = [];
+
+    function initializeMatrix() {
+      matrix = Array(vertices.length).fill().map(() => Array(vertices.length).fill(Infinity));
+      pathMatrix = Array(vertices.length).fill().map(() => Array(vertices.length).fill(null));
+
+      vertices.forEach((v, i) => {
+        matrix[i][i] = 0;
+        pathMatrix[i][i] = i;
+      });
+
+      edges.forEach(edge => {
+        const fromIndex = vertices.indexOf(edge.from);
+        const toIndex = vertices.indexOf(edge.to);
+        matrix[fromIndex][toIndex] = edge.weight;
+        matrix[toIndex][fromIndex] = edge.weight;
+        pathMatrix[fromIndex][toIndex] = toIndex;
+        pathMatrix[toIndex][fromIndex] = fromIndex;
+      });
+    }
+
+    function createMatrixTable() {
+      matrixTable.innerHTML = '';
+      const headerRow = matrixTable.insertRow();
+      headerRow.insertCell();
+      vertices.forEach(v => {
+        const th = document.createElement('th');
+        th.textContent = v;
+        headerRow.appendChild(th);
+      });
+
+      vertices.forEach((v, i) => {
+        const row = matrixTable.insertRow();
+        const th = document.createElement('th');
+        th.textContent = v;
+        row.appendChild(th);
+        vertices.forEach((u, j) => {
+          const cell = row.insertCell();
+          cell.textContent = matrix[i][j] === Infinity ? '∞' : matrix[i][j];
+        });
+      });
+    }
+
+    function updateMatrix(k) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          for (let i = 0; i < vertices.length; i++) {
+            for (let j = 0; j < vertices.length; j++) {
+              if (matrix[i][k] + matrix[k][j] < matrix[i][j]) {
+                matrix[i][j] = matrix[i][k] + matrix[k][j];
+                pathMatrix[i][j] = pathMatrix[i][k];
+                highlightCell(i, j, k);
+              }
+            }
+          }
+          resolve();
+        }, 4000); // Alterado para 4000 milissegundos (4 segundos)
+      });
+    }
+
+    function highlightCell(i, j, k) {
+      const cell = matrixTable.rows[i + 1].cells[j + 1];
+      cell.style.backgroundColor = '#ffeb3b';
+      cell.textContent = matrix[i][j];
+      setTimeout(() => {
+        cell.style.backgroundColor = '#e6f7ff';
+      }, 500);
+    }
+
+    async function runAlgorithm() {
+      startButton.disabled = true;
+      document.querySelector('.step-explanation').style.display = 'block';
+
+      for (let k = 0; k < vertices.length; k++) {
+        document.getElementById('currentStep').innerHTML = `
+          <strong>Estamos verificando a cidade ${vertices[k]}:</strong><br>
+          Será que passar por ${vertices[k]} pode criar caminhos mais curtos entre as outras cidades?<br>
+          Se encontrarmos um caminho mais curto passando por ${vertices[k]}, atualizaremos nossa tabela.
+        `;
+        await updateMatrix(k);
+      }
+
+      showResults();
+      startButton.disabled = false;
+    }
+
+    function showResults() {
+      const pathContainer = document.querySelector('.path-container');
+      const shortestPathElement = document.getElementById('shortestPath');
+      const shortestPathInfoElement = document.getElementById('shortestPathInfo');
+      pathContainer.style.display = 'block';
+      document.querySelector('.shortest-path-info').style.display = 'block';
+      shortestPathElement.innerHTML = '';
+
+      let minDistance = Infinity;
+      let start, end;
+
+      // Encontrar o caminho mais curto
+      for (let i = 0; i < vertices.length; i++) {
+        for (let j = 0; j < vertices.length; j++) {
+          if (i !== j && matrix[i][j] < minDistance) {
+            minDistance = matrix[i][j];
+            start = i;
+            end = j;
+          }
+        }
+      }
+
+      const path = reconstructPath(start, end);
+      path.forEach((vertex, index) => {
+        const nodeElement = document.createElement('span');
+        nodeElement.className = 'path-node';
+        nodeElement.textContent = vertices[vertex];
+        shortestPathElement.appendChild(nodeElement);
+
+        if (index < path.length - 1) {
+          const arrowElement = document.createElement('span');
+          arrowElement.className = 'path-arrow';
+          arrowElement.textContent = '→';
+          shortestPathElement.appendChild(arrowElement);
+        }
+      });
+
+      shortestPathInfoElement.innerHTML = `
+        <strong>Descobrimos o menor caminho!</strong><br>
+        O caminho mais curto que encontramos é:<br>
+        De ${vertices[start]} para ${vertices[end]}<br>
+        Distância total: ${minDistance} km<br>
+        Este é um dos menores caminhos entre duas cidades em nossa rede!<br><br>
+        <em>Lembre-se: O algoritmo de Floyd-Warshall encontrou os caminhos mais curtos entre TODAS as cidades, 
+        mas estamos mostrando apenas um como exemplo!</em>
+      `;
+    }
+
+    function reconstructPath(start, end) {
+      const path = [];
+      let current = start;
+      while (current !== end) {
+        path.push(current);
+        current = pathMatrix[current][end];
+      }
+      path.push(end);
+      return path;
+    }
+
+    function generateRandomEdges() {
+      // Esta função não é mais necessária, pois estamos usando as arestas definidas
+      return edges;
+    }
+
+    startButton.addEventListener('click', runAlgorithm);
+
+    // Modificado: Event listener para o botão de voltar
+    document.getElementById('backToPage3').addEventListener('click', () => {
+      document.body.classList.add('fade-out');
+      setTimeout(() => {
+        window.location.href = 'inicial.html';
+      }, 500);
+    });
+
+    window.addEventListener('load', () => {
+      document.body.classList.add('fade-in');
+      initializeMatrix();
+      createMatrixTable();
+    });
+  </script>
+</body>
+
+</html>
